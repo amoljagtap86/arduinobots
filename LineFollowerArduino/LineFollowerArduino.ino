@@ -14,6 +14,11 @@ float Kp=0,Ki=0,Kd=0;
 float error=0, P=0, I=0, D=0, PID_value=0;
 float previous_error=0, previous_I=0;
 
+int initial_motor_speed=100;
+
+void read_sensor_values(void);
+void calculate_pid(void);
+void motor_control(void);
 
 void setup() {
   pinMode(PWM_out_pin_motor_right, OUTPUT);
@@ -34,12 +39,11 @@ void read_sensor_values(){
     int middle = digitalRead(sensor_middle);  
     int left = digitalRead(sensor_left);  
     int leftMost = digitalRead(sensor_leftmost);
-//stop if sensor all white 
+    //stop if sensor all white 
     //if(leftMost ==1 && left== 1 && middle ==1 && right== 1 &&  rightMost== 1)
     //{
       //stop motor
     //}
-
 
     if(leftMost ==1 && left== 1 && middle ==1 && right== 1 &&  rightMost== 0)
     {
@@ -191,41 +195,41 @@ void read_sensor_values(){
   
 }
 
-void loop() {
-  
-  read_sensor_values();
-  
-    int leftVoltage = 0;
-    int rightVoltage = 0;
-  
+void calculate_pid()
+{
+    P = error;
+    I = I + previous_I;
+    D = error-previous_error;
     
-    Serial.print(leftMost);
-   Serial.print(left);
-    Serial.print(middle);
-                 Serial.print(right);
-    Serial.println(rightMost);
+    PID_value = (Kp*P) + (Ki*I) + (Kd*D);
     
-    if(rightMost== 1 && leftMost == 1 &&
-       right== 0 && middle == 0 && left == 0)
-       {
-           
-         leftVoltage = highVoltage;
-         rightVoltage = highVoltage;
-       }
-    else if(rightMost==1 && leftMost == 1 &&
-       right==1 && middle ==1 && left == 1)
-       {
-        leftVoltage = zeroVoltage;
-        rightVoltage = zeroVoltage;
-      }
-    else if (rightMost == 0 && leftMost == 0 &&
-    right==0 && middle == 0 && left ==0)
-    {
-        leftVoltage = zeroVoltage;
-        rightVoltage = zeroVoltage;
-    }
-    
-   analogWrite( PWM_out_pin_motor_left, leftVoltage);
-  analogWrite( PWM_out_pin_motor_right, rightVoltage);
-    Serial.println(rightVoltage);
+    previous_I=I;
+    previous_error=error;
 }
+
+void motor_control()
+{
+    // Calculating the effective motor speed:
+    int left_motor_speed = initial_motor_speed-PID_value;
+    int right_motor_speed = initial_motor_speed+PID_value;
+    
+    // The motor speed should not exceed the max PWM value
+    constrain(left_motor_speed,0,255);
+    constrain(right_motor_speed,0,255);
+	
+	analogWrite(9,initial_motor_speed-PID_value);   //Left Motor Speed
+    analogWrite(10,initial_motor_speed+PID_value);  //Right Motor Speed
+    //following lines of code are to make the bot move forward
+    /*The pin numbers and high, low values might be different
+    depending on your connections */
+    digitalWrite(4,HIGH);
+    digitalWrite(5,LOW);
+    digitalWrite(6,LOW);
+    digitalWrite(7,HIGH);
+}
+
+void loop() {
+  read_sensor_values();
+  calculate_pid();  
+  motor_control();
+ }
