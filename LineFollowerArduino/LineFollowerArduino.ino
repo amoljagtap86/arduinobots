@@ -1,10 +1,10 @@
 int PWM_out_pin_motor_right = 9;
 int PWM_out_pin_motor_left = 9;
-int sensor_leftmost = 0;
-int sensor_left = 0;
-int sensor_middle = 0;
-int sensor_right = 0;
-int sensor_rightmost = 0;
+int sensor_leftmost = 5;
+int sensor_left = 1;
+int sensor_middle = 2;
+int sensor_right = 3;
+int sensor_rightmost = 4;
 
 int highVoltage = 255;
 int lowVoltage = 100;
@@ -31,11 +31,22 @@ void loop() {
     int right = digitalRead(sensor_right);
     int middle = digitalRead(sensor_middle);  
     int left = digitalRead(sensor_left);  
-    int leftMost = digitalRead(sensor_leftmost);
+    int leftMost = digitalRead(leftMost);
     
-    if(rightMost==1 && leftMost == 1 &&
-       right==0 && middle ==0 && left == 0)
+    Serial.print(leftMost);
+   Serial.print(left);
+    Serial.print(middle);
+                 Serial.print(right);
+    Serial.println(rightMost);
+
+               
+                 
+                   
+    
+    if(rightMost== 1 && leftMost == 1 &&
+       right== 0 && middle == 0 && left == 0)
        {
+           
          leftVoltage = highVoltage;
          rightVoltage = highVoltage;
        }
@@ -54,5 +65,5 @@ void loop() {
     
    analogWrite( PWM_out_pin_motor_left, leftVoltage);
   analogWrite( PWM_out_pin_motor_right, rightVoltage);
-    
+    Serial.println(rightVoltage);
 }
